@@ -1,10 +1,11 @@
 # Kunfig
 
-[![Tests][build-status-image]][build-status-url]
-[![Latest Version][latest-version-image]][latest-version-url]
-[![Downloads][downloads-image]][downloads-url]
-[![PHP Version][php-version-image]][php-version-url]
-[![License][license-image]][license-url]
+[![Tests](https://github.com/vaibhavpandeyvpz/kunfig/actions/workflows/tests.yml/badge.svg)](https://github.com/vaibhavpandeyvpz/kunfig/actions)
+[![Latest Version](https://img.shields.io/packagist/v/vaibhavpandeyvpz/kunfig.svg?style=flat-square)](https://packagist.org/packages/vaibhavpandeyvpz/kunfig)
+[![Downloads](https://img.shields.io/packagist/dt/vaibhavpandeyvpz/kunfig.svg?style=flat-square)](https://packagist.org/packages/vaibhavpandeyvpz/kunfig)
+[![PHP Version](https://img.shields.io/packagist/php-v/vaibhavpandeyvpz/kunfig.svg?style=flat-square)](https://packagist.org/packages/vaibhavpandeyvpz/kunfig)
+[![License](https://img.shields.io/packagist/l/vaibhavpandeyvpz/kunfig.svg?style=flat-square)](LICENSE)
+[![Code Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg?style=flat-square)](https://github.com/vaibhavpandeyvpz/kunfig)
 
 A modern, flexible PHP configuration management library that provides multiple access patterns for managing configuration values with support for nested configurations, merging, and type safety.
 
@@ -417,7 +418,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is open-sourced software licensed under the [MIT license](LICENSE.md).
+This project is open-sourced software licensed under the [MIT license](LICENSE).
 
 ## Links
 
@@ -425,16 +426,6 @@ This project is open-sourced software licensed under the [MIT license](LICENSE.m
 - [Packagist][packagist-url]
 - [Issues][issues-url]
 
-[build-status-image]: https://github.com/vaibhavpandeyvpz/kunfig/actions/workflows/tests.yml/badge.svg
-[build-status-url]: https://github.com/vaibhavpandeyvpz/kunfig/actions
-[latest-version-image]: https://img.shields.io/github/release/vaibhavpandeyvpz/kunfig.svg?style=flat-square
-[latest-version-url]: https://github.com/vaibhavpandeyvpz/kunfig/releases
-[downloads-image]: https://img.shields.io/packagist/dt/vaibhavpandeyvpz/kunfig.svg?style=flat-square
-[downloads-url]: https://packagist.org/packages/vaibhavpandeyvpz/kunfig
-[php-version-image]: http://img.shields.io/badge/php-8.2+-8892be.svg?style=flat-square
-[php-version-url]: https://packagist.org/packages/vaibhavpandeyvpz/kunfig
-[license-image]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
-[license-url]: LICENSE.md
 [github-url]: https://github.com/vaibhavpandeyvpz/kunfig
 [packagist-url]: https://packagist.org/packages/vaibhavpandeyvpz/kunfig
 [issues-url]: https://github.com/vaibhavpandeyvpz/kunfig/issues
