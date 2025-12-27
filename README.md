@@ -1,6 +1,6 @@
 # Kunfig
 
-[![Build status][build-status-image]][build-status-url]
+[![Tests][build-status-image]][build-status-url]
 [![Latest Version][latest-version-image]][latest-version-url]
 [![Downloads][downloads-image]][downloads-url]
 [![PHP Version][php-version-image]][php-version-url]
@@ -425,8 +425,8 @@ This project is open-sourced software licensed under the [MIT license](LICENSE.m
 - [Packagist][packagist-url]
 - [Issues][issues-url]
 
-[build-status-image]: https://img.shields.io/travis/vaibhavpandeyvpz/kunfig.svg?style=flat-square
-[build-status-url]: https://travis-ci.org/vaibhavpandeyvpz/kunfig
+[build-status-image]: https://github.com/vaibhavpandeyvpz/kunfig/actions/workflows/tests.yml/badge.svg
+[build-status-url]: https://github.com/vaibhavpandeyvpz/kunfig/actions
 [latest-version-image]: https://img.shields.io/github/release/vaibhavpandeyvpz/kunfig.svg?style=flat-square
 [latest-version-url]: https://github.com/vaibhavpandeyvpz/kunfig/releases
 [downloads-image]: https://img.shields.io/packagist/dt/vaibhavpandeyvpz/kunfig.svg?style=flat-square
