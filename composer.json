@@ -1,8 +1,10 @@
 {
-  "authors": [{
-    "name": "Vaibhav Pandey",
-    "email": "contact@vaibhavpandey.com"
-  }],
+  "authors": [
+    {
+      "name": "Vaibhav Pandey",
+      "email": "contact@vaibhavpandey.com"
+    }
+  ],
   "autoload": {
     "psr-4": {
       "Kunfig\\": "src/"
@@ -14,15 +16,20 @@
     }
   },
   "description": "Helper library to easily merge & use multiple configuration files.",
-  "homepage": "http://vaibhavpandeyvpz.github.io/kunfig",
-  "keywords": ["php", "multiple", "configuration", "manager"],
+  "homepage": "https://github.com/vaibhavpandeyvpz/kunfig",
+  "keywords": [
+    "php",
+    "multiple",
+    "configuration",
+    "manager"
+  ],
   "license": "MIT",
-  "name" : "vaibhavpandeyvpz/kunfig",
+  "name": "vaibhavpandeyvpz/kunfig",
   "require": {
-    "php": "^5.3 || ^7.0"
+    "php": "^8.2"
   },
   "require-dev": {
-    "phpunit/phpunit": "^4.0 || ^5.0"
+    "phpunit/phpunit": "^10.0"
   },
   "type": "library"
 }
