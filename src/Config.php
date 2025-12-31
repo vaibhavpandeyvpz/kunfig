@@ -83,9 +83,14 @@ class Config implements ConfigInterface
      * {@inheritdoc}
      *
      * Checks if a configuration key exists.
+     * Supports dot notation for nested keys (e.g., 'app.debug').
      */
     public function has(string $key): bool
     {
+        if (str_contains($key, '.')) {
+            return $this->hasNested($key);
+        }
+
         return array_key_exists($key, $this->values);
     }
 
@@ -93,9 +98,14 @@ class Config implements ConfigInterface
      * {@inheritdoc}
      *
      * Gets a configuration value by key, or returns the fallback if the key doesn't exist.
+     * Supports dot notation for nested keys (e.g., 'app.debug').
      */
     public function get(string $key, mixed $fallback = null): mixed
     {
+        if (str_contains($key, '.')) {
+            return $this->getNested($key, $fallback);
+        }
+
         return $this->has($key) ? $this->values[$key] : $fallback;
     }
 
@@ -140,9 +150,16 @@ class Config implements ConfigInterface
      *
      * Sets a configuration value. If the value is an array,
      * it is automatically converted to a Config instance.
+     * Supports dot notation for nested keys (e.g., 'app.debug').
      */
     public function set(string $key, mixed $value): void
     {
+        if (str_contains($key, '.')) {
+            $this->setNested($key, $value);
+
+            return;
+        }
+
         $this->values[$key] = is_array($value) ? new self($value) : $value;
     }
 
@@ -150,10 +167,134 @@ class Config implements ConfigInterface
      * {@inheritdoc}
      *
      * Removes a configuration key and its value.
+     * Supports dot notation for nested keys (e.g., 'app.debug').
      */
     public function remove(string $key): void
     {
+        if (str_contains($key, '.')) {
+            $this->removeNested($key);
+
+            return;
+        }
+
         unset($this->values[$key]);
+    }
+
+    /**
+     * Check if a nested configuration key exists using dot notation.
+     *
+     * @param  string  $key  The dot-notation key (e.g., 'app.debug')
+     * @return bool True if the key exists, false otherwise
+     */
+    protected function hasNested(string $key): bool
+    {
+        $keys = explode('.', $key, 2);
+        $firstKey = $keys[0];
+
+        if (! array_key_exists($firstKey, $this->values)) {
+            return false;
+        }
+
+        $value = $this->values[$firstKey];
+
+        if (! ($value instanceof ConfigInterface)) {
+            return count($keys) === 1;
+        }
+
+        if (count($keys) === 1) {
+            return true;
+        }
+
+        return $value->has($keys[1]);
+    }
+
+    /**
+     * Get a nested configuration value using dot notation.
+     *
+     * @param  string  $key  The dot-notation key (e.g., 'app.debug')
+     * @param  mixed  $fallback  The fallback value if key doesn't exist
+     * @return mixed The configuration value or fallback
+     */
+    protected function getNested(string $key, mixed $fallback = null): mixed
+    {
+        $keys = explode('.', $key, 2);
+        $firstKey = $keys[0];
+
+        if (! array_key_exists($firstKey, $this->values)) {
+            return $fallback;
+        }
+
+        $value = $this->values[$firstKey];
+
+        if (! ($value instanceof ConfigInterface)) {
+            return count($keys) === 1 ? $value : $fallback;
+        }
+
+        if (count($keys) === 1) {
+            return $value;
+        }
+
+        return $value->get($keys[1], $fallback);
+    }
+
+    /**
+     * Set a nested configuration value using dot notation.
+     *
+     * @param  string  $key  The dot-notation key (e.g., 'app.debug')
+     * @param  mixed  $value  The value to set
+     */
+    protected function setNested(string $key, mixed $value): void
+    {
+        $keys = explode('.', $key, 2);
+        $firstKey = $keys[0];
+
+        if (count($keys) === 1) {
+            $this->values[$firstKey] = is_array($value) ? new self($value) : $value;
+
+            return;
+        }
+
+        if (! array_key_exists($firstKey, $this->values)) {
+            $this->values[$firstKey] = new self;
+        }
+
+        $nested = $this->values[$firstKey];
+
+        if (! ($nested instanceof ConfigInterface)) {
+            $this->values[$firstKey] = new self;
+            $nested = $this->values[$firstKey];
+        }
+
+        $nested->set($keys[1], $value);
+    }
+
+    /**
+     * Remove a nested configuration key using dot notation.
+     *
+     * @param  string  $key  The dot-notation key (e.g., 'app.debug')
+     */
+    protected function removeNested(string $key): void
+    {
+        $keys = explode('.', $key, 2);
+        $firstKey = $keys[0];
+
+        if (! array_key_exists($firstKey, $this->values)) {
+            return;
+        }
+
+        if (count($keys) === 1) {
+            unset($this->values[$firstKey]);
+
+            return;
+        }
+
+        $nested = $this->values[$firstKey];
+
+        if (! ($nested instanceof ConfigInterface)) {
+            return;
+        }
+
+        $nested->remove($keys[1]);
     }
 
     // <editor-fold desc="Magic Methods">

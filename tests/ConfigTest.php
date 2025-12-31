@@ -1200,4 +1200,307 @@ class ConfigTest extends TestCase
         $this->assertEquals('deep_value', $base['new_branch']['level1']['level2']);
         $this->assertEquals('deep_value', $base->new_branch->level1->level2);
     }
+
+    public function test_dot_notation_get(): void
+    {
+        $config = new Config([
+            'app' => [
+                'name' => 'MyApp',
+                'debug' => false,
+                'database' => [
+                    'host' => 'localhost',
+                    'port' => 3306,
+                ],
+            ],
+        ]);
+
+        // Single level dot notation
+        $this->assertInstanceOf(ConfigInterface::class, $config->get('app'));
+        $this->assertEquals('MyApp', $config->get('app.name'));
+        $this->assertFalse($config->get('app.debug'));
+
+        // Multi-level dot notation
+        $this->assertEquals('localhost', $config->get('app.database.host'));
+        $this->assertEquals(3306, $config->get('app.database.port'));
+
+        // Non-existent keys
+        $this->assertNull($config->get('app.nonexistent'));
+        $this->assertEquals('default', $config->get('app.nonexistent', 'default'));
+        $this->assertNull($config->get('nonexistent.key'));
+    }
+
+    public function test_dot_notation_set(): void
+    {
+        $config = new Config([
+            'app' => [
+                'name' => 'MyApp',
+            ],
+        ]);
+
+        // Set existing nested key
+        $config->set('app.name', 'NewApp');
+        $this->assertEquals('NewApp', $config->app->name);
+
+        // Set new nested key
+        $config->set('app.debug', true);
+        $this->assertTrue($config->app->debug);
+
+        // Set deeply nested key (creates structure)
+        $config->set('app.database.host', 'localhost');
+        $this->assertEquals('localhost', $config->app->database->host);
+
+        // Set new top-level key with dot notation
+        $config->set('cache.enabled', true);
+        $this->assertTrue($config->cache->enabled);
+    }
+
+    public function test_dot_notation_has(): void
+    {
+        $config = new Config([
+            'app' => [
+                'name' => 'MyApp',
+                'database' => [
+                    'host' => 'localhost',
+                ],
+            ],
+        ]);
+
+        // Single level
+        $this->assertTrue($config->has('app'));
+        $this->assertTrue($config->has('app.name'));
+
+        // Multi-level
+        $this->assertTrue($config->has('app.database'));
+        $this->assertTrue($config->has('app.database.host'));
+
+        // Non-existent
+        $this->assertFalse($config->has('app.nonexistent'));
+        $this->assertFalse($config->has('nonexistent.key'));
+    }
+
+    public function test_dot_notation_remove(): void
+    {
+        $config = new Config([
+            'app' => [
+                'name' => 'MyApp',
+                'debug' => false,
+                'database' => [
+                    'host' => 'localhost',
+                    'port' => 3306,
+                ],
+            ],
+        ]);
+
+        // Remove nested key
+        $config->remove('app.debug');
+        $this->assertFalse($config->has('app.debug'));
+        $this->assertTrue($config->has('app.name'));
+
+        // Remove deeply nested key
+        $config->remove('app.database.port');
+        $this->assertFalse($config->has('app.database.port'));
+        $this->assertTrue($config->has('app.database.host'));
+
+        // Remove parent key
+        $config->remove('app.database');
+        $this->assertFalse($config->has('app.database'));
+        $this->assertTrue($config->has('app.name'));
+    }
+
+    public function test_dot_notation_array_access(): void
+    {
+        $config = new Config([
+            'app' => [
+                'name' => 'MyApp',
+                'debug' => false,
+                'database' => [
+                    'host' => 'localhost',
+                ],
+            ],
+        ]);
+
+        // Single level
+        $this->assertEquals('MyApp', $config['app.name']);
+        $this->assertFalse($config['app.debug']);
+
+        // Multi-level
+        $this->assertEquals('localhost', $config['app.database.host']);
+
+        // Set via array access with dot notation
+        $config['app.version'] = '1.0.0';
+        $this->assertEquals('1.0.0', $config['app.version']);
+
+        // Check isset
+        $this->assertTrue(isset($config['app.name']));
+        $this->assertFalse(isset($config['app.nonexistent']));
+
+        // Unset via array access with dot notation
+        unset($config['app.debug']);
+        $this->assertFalse(isset($config['app.debug']));
+    }
+
+    public function test_dot_notation_deeply_nested(): void
+    {
+        $config = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'level4' => [
+                            'value' => 'deep',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        // Access deeply nested value
+        $this->assertEquals('deep', $config->get('level1.level2.level3.level4.value'));
+
+        // Set deeply nested value
+        $config->set('level1.level2.level3.level4.new_value', 'new');
+        $this->assertEquals('new', $config->get('level1.level2.level3.level4.new_value'));
+
+        // Array access
+        $this->assertEquals('deep', $config['level1.level2.level3.level4.value']);
+    }
+
+    public function test_dot_notation_with_fallback(): void
+    {
+        $config = new Config([
+            'app' => [
+                'name' => 'MyApp',
+            ],
+        ]);
+
+        // Existing key with fallback
+        $this->assertEquals('MyApp', $config->get('app.name', 'default'));
+
+        // Non-existent key with fallback
+        $this->assertEquals('default', $config->get('app.nonexistent', 'default'));
+        $this->assertEquals(42, $config->get('app.port', 42));
+
+        // Non-existent parent with fallback
+        $this->assertEquals('default', $config->get('nonexistent.key', 'default'));
+    }
+
+    public function test_dot_notation_creates_structure(): void
+    {
+        $config = new Config;
+
+        // Setting nested key creates structure
+        $config->set('app.database.host', 'localhost');
+        $this->assertTrue($config->has('app'));
+        $this->assertTrue($config->has('app.database'));
+        $this->assertTrue($config->has('app.database.host'));
+        $this->assertEquals('localhost', $config->get('app.database.host'));
+
+        // Can access via traditional methods too
+        $this->assertEquals('localhost', $config->app->database->host);
+    }
+
+    public function test_dot_notation_with_existing_non_config_value(): void
+    {
+        $config = new Config([
+            'app' => 'simple_string',
+        ]);
+
+        // Has should return false for nested access on non-config value
+        $this->assertFalse($config->has('app.key'));
+
+        // Get should return fallback
+        $this->assertEquals('default', $config->get('app.key', 'default'));
+
+        // Setting nested key on non-config value should convert it
+        $config->set('app.key', 'value');
+        $this->assertInstanceOf(ConfigInterface::class, $config->get('app'));
+        $this->assertEquals('value', $config->get('app.key'));
+    }
+
+    public function test_dot_notation_merge_compatibility(): void
+    {
+        $base = new Config([
+            'app' => [
+                'name' => 'MyApp',
+                'version' => '1.0.0',
+            ],
+        ]);
+
+        $override = new Config([
+            'app' => [
+                'version' => '2.0.0',
+            ],
+        ]);
+
+        $base->mix($override);
+
+        // Dot notation works after merge
+        $this->assertEquals('MyApp', $base->get('app.name'));
+        $this->assertEquals('2.0.0', $base->get('app.version'));
+    }
+
+    public function test_dot_notation_edge_cases(): void
+    {
+        $config = new Config([
+            'app' => 'simple_string',
+            'nested' => [
+                'key' => 'value',
+            ],
+        ]);
+
+        // hasNested: non-config value with single key
+        $this->assertTrue($config->has('app'));
+
+        // hasNested: non-config value with nested key
+        $this->assertFalse($config->has('app.key'));
+
+        // hasNested: config value with single key (count === 1)
+        $this->assertTrue($config->has('nested'));
+
+        // getNested: non-config value with single key
+        $this->assertEquals('simple_string', $config->get('app'));
+
+        // getNested: non-config value with nested key
+        $this->assertNull($config->get('app.key'));
+
+        // getNested: config value with single key (returns ConfigInterface)
+        $nested = $config->get('nested');
+        $this->assertInstanceOf(ConfigInterface::class, $nested);
+        $this->assertEquals('value', $nested->get('key'));
+
+        // getNested: config value with nested key
+        $this->assertEquals('value', $config->get('nested.key'));
+
+        // setNested: single key (no dot) - creates array
+        $config->set('single', 'value');
+        $this->assertEquals('value', $config->get('single'));
+
+        // setNested: nested key on non-existent parent
+        $config->set('new.parent.key', 'value');
+        $this->assertEquals('value', $config->get('new.parent.key'));
+
+        // setNested: nested key on existing non-config value (converts it)
+        $config->set('app', 'string');
+        $config->set('app.key', 'value');
+        $this->assertInstanceOf(ConfigInterface::class, $config->get('app'));
+        $this->assertEquals('value', $config->get('app.key'));
+
+        // removeNested: non-config value (early return)
+        $config->set('simple', 'value');
+        $config->remove('simple.nested');
+        $this->assertEquals('value', $config->get('simple'));
+
+        // removeNested: single key
+        $config->set('to_remove', 'value');
+        $config->remove('to_remove');
+        $this->assertFalse($config->has('to_remove'));
+
+        // removeNested: nested key on non-existent parent
+        $config->remove('nonexistent.key');
+        $this->assertFalse($config->has('nonexistent'));
+
+        // removeNested: nested key on non-config parent
+        $config->set('non_config', 'string');
+        $config->remove('non_config.nested');
+        $this->assertEquals('string', $config->get('non_config'));
+    }
 }
