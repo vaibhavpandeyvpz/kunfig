@@ -435,6 +435,218 @@ class ConfigTest extends TestCase
         $this->assertEquals('remote', $config->database->host);
     }
 
+    public function test_nested_get_with_fallback(): void
+    {
+        $config = new Config([
+            'database' => [
+                'host' => 'localhost',
+                'port' => 3306,
+            ],
+        ]);
+
+        // Existing nested key without fallback
+        $this->assertEquals('localhost', $config->get('database')->get('host'));
+        $this->assertEquals(3306, $config->get('database')->get('port'));
+
+        // Non-existent nested key with fallback
+        $this->assertEquals('default', $config->get('database')->get('nonexistent', 'default'));
+        $this->assertEquals(8080, $config->get('database')->get('nonexistent_port', 8080));
+
+        // Non-existent nested key without fallback
+        $this->assertNull($config->get('database')->get('nonexistent'));
+    }
+
+    public function test_nested_array_access_with_nonexistent_keys(): void
+    {
+        $config = new Config([
+            'database' => [
+                'host' => 'localhost',
+                'port' => 3306,
+            ],
+        ]);
+
+        // Existing nested keys
+        $this->assertEquals('localhost', $config['database']['host']);
+        $this->assertEquals(3306, $config['database']['port']);
+
+        // Non-existent nested keys should return null
+        $this->assertNull($config['database']['nonexistent']);
+        $this->assertFalse(isset($config['database']['nonexistent']));
+    }
+
+    public function test_nested_property_access_with_nonexistent_keys(): void
+    {
+        $config = new Config([
+            'database' => [
+                'host' => 'localhost',
+                'port' => 3306,
+            ],
+        ]);
+
+        // Existing nested keys
+        $this->assertEquals('localhost', $config->database->host);
+        $this->assertEquals(3306, $config->database->port);
+
+        // Non-existent nested keys should return null
+        $this->assertNull($config->database->nonexistent);
+        $this->assertFalse(isset($config->database->nonexistent));
+    }
+
+    public function test_nested_set_via_get(): void
+    {
+        $config = new Config([
+            'database' => [
+                'host' => 'localhost',
+            ],
+        ]);
+
+        // Set nested value via get()->set()
+        $config->get('database')->set('port', 3306);
+        $config->get('database')->set('name', 'myapp');
+
+        $this->assertEquals(3306, $config->database->port);
+        $this->assertEquals('myapp', $config->database->name);
+        $this->assertEquals('localhost', $config->database->host);
+    }
+
+    public function test_nested_set_via_array_access(): void
+    {
+        $config = new Config([
+            'database' => [
+                'host' => 'localhost',
+            ],
+        ]);
+
+        // Set nested value via array access
+        $config['database']['port'] = 3306;
+        $config['database']['name'] = 'myapp';
+
+        $this->assertEquals(3306, $config['database']['port']);
+        $this->assertEquals('myapp', $config['database']['name']);
+        $this->assertEquals('localhost', $config['database']['host']);
+    }
+
+    public function test_nested_set_via_property_access(): void
+    {
+        $config = new Config([
+            'database' => [
+                'host' => 'localhost',
+            ],
+        ]);
+
+        // Set nested value via property access
+        $config->database->port = 3306;
+        $config->database->name = 'myapp';
+
+        $this->assertEquals(3306, $config->database->port);
+        $this->assertEquals('myapp', $config->database->name);
+        $this->assertEquals('localhost', $config->database->host);
+    }
+
+    public function test_deeply_nested_get_with_fallback(): void
+    {
+        $config = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'value' => 'deep',
+                    ],
+                ],
+            ],
+        ]);
+
+        // Existing deeply nested key
+        $this->assertEquals('deep', $config->get('level1')->get('level2')->get('level3')->get('value'));
+
+        // Non-existent deeply nested key with fallback
+        $this->assertEquals('default', $config->get('level1')->get('level2')->get('level3')->get('nonexistent', 'default'));
+
+        // Non-existent deeply nested key without fallback
+        $this->assertNull($config->get('level1')->get('level2')->get('level3')->get('nonexistent'));
+    }
+
+    public function test_deeply_nested_array_access_with_nonexistent_keys(): void
+    {
+        $config = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'value' => 'deep',
+                    ],
+                ],
+            ],
+        ]);
+
+        // Existing deeply nested key
+        $this->assertEquals('deep', $config['level1']['level2']['level3']['value']);
+
+        // Non-existent deeply nested key should return null
+        $this->assertNull($config['level1']['level2']['level3']['nonexistent']);
+        $this->assertFalse(isset($config['level1']['level2']['level3']['nonexistent']));
+    }
+
+    public function test_deeply_nested_property_access_with_nonexistent_keys(): void
+    {
+        $config = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'value' => 'deep',
+                    ],
+                ],
+            ],
+        ]);
+
+        // Existing deeply nested key
+        $this->assertEquals('deep', $config->level1->level2->level3->value);
+
+        // Non-existent deeply nested key should return null
+        $this->assertNull($config->level1->level2->level3->nonexistent);
+        $this->assertFalse(isset($config->level1->level2->level3->nonexistent));
+    }
+
+    public function test_nested_get_on_nonexistent_parent(): void
+    {
+        $config = new Config;
+
+        // Getting a non-existent parent should return null
+        $this->assertNull($config->get('nonexistent'));
+
+        // Getting nested key on non-existent parent with fallback
+        $this->assertNull($config->get('nonexistent', null));
+        $this->assertEquals('default', $config->get('nonexistent', 'default'));
+
+        // Trying to access nested on null should cause error, but we test the get() behavior
+        $parent = $config->get('nonexistent');
+        $this->assertNull($parent);
+    }
+
+    public function test_nested_array_access_on_nonexistent_parent(): void
+    {
+        $config = new Config;
+
+        // Accessing non-existent parent should return null
+        $this->assertNull($config['nonexistent']);
+
+        // Trying to access nested on null parent
+        $parent = $config['nonexistent'];
+        $this->assertNull($parent);
+        $this->assertFalse(isset($config['nonexistent']));
+    }
+
+    public function test_nested_property_access_on_nonexistent_parent(): void
+    {
+        $config = new Config;
+
+        // Accessing non-existent parent should return null
+        $this->assertNull($config->nonexistent);
+
+        // Trying to access nested on null parent
+        $parent = $config->nonexistent;
+        $this->assertNull($parent);
+        $this->assertFalse(isset($config->nonexistent));
+    }
+
     public function test_all_returns_proper_nested_structure(): void
     {
         $config = new Config([
@@ -628,5 +840,364 @@ class ConfigTest extends TestCase
         $config = new Config;
         $this->assertCount(0, $config);
         $this->assertEmpty($config->all());
+    }
+
+    public function test_nested_key_merge_single_level(): void
+    {
+        $base = new Config([
+            'database' => [
+                'host' => 'localhost',
+                'port' => 3306,
+                'name' => 'production',
+            ],
+        ]);
+
+        $override = new Config([
+            'database' => [
+                'port' => 5432,
+                'user' => 'admin',
+            ],
+        ]);
+
+        $base->mix($override);
+
+        // Original values preserved
+        $this->assertEquals('localhost', $base->database->host);
+        $this->assertEquals('production', $base->database->name);
+
+        // Overridden values
+        $this->assertEquals(5432, $base->database->port);
+
+        // New values added
+        $this->assertEquals('admin', $base->database->user);
+    }
+
+    public function test_nested_key_merge_multi_level(): void
+    {
+        $base = new Config([
+            'app' => [
+                'name' => 'MyApp',
+                'database' => [
+                    'host' => 'localhost',
+                    'port' => 3306,
+                    'credentials' => [
+                        'user' => 'root',
+                        'password' => 'secret',
+                    ],
+                ],
+            ],
+        ]);
+
+        $override = new Config([
+            'app' => [
+                'version' => '1.0.0',
+                'database' => [
+                    'port' => 5432,
+                    'credentials' => [
+                        'password' => 'newsecret',
+                    ],
+                ],
+            ],
+        ]);
+
+        $base->mix($override);
+
+        // Top level preserved
+        $this->assertEquals('MyApp', $base->app->name);
+
+        // Top level added
+        $this->assertEquals('1.0.0', $base->app->version);
+
+        // Second level preserved
+        $this->assertEquals('localhost', $base->app->database->host);
+
+        // Second level overridden
+        $this->assertEquals(5432, $base->app->database->port);
+
+        // Third level preserved
+        $this->assertEquals('root', $base->app->database->credentials->user);
+
+        // Third level overridden
+        $this->assertEquals('newsecret', $base->app->database->credentials->password);
+    }
+
+    public function test_deep_merge_access_via_get(): void
+    {
+        $base = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'value1' => 'original',
+                        'value2' => 'original2',
+                    ],
+                ],
+            ],
+        ]);
+
+        $override = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'value1' => 'merged',
+                        'value3' => 'new',
+                    ],
+                ],
+            ],
+        ]);
+
+        $base->mix($override);
+
+        // Access via get() method
+        $this->assertEquals('merged', $base->get('level1')->get('level2')->get('level3')->get('value1'));
+        $this->assertEquals('original2', $base->get('level1')->get('level2')->get('level3')->get('value2'));
+        $this->assertEquals('new', $base->get('level1')->get('level2')->get('level3')->get('value3'));
+
+        // Access with fallback
+        $this->assertEquals('default', $base->get('level1')->get('level2')->get('level3')->get('nonexistent', 'default'));
+    }
+
+    public function test_deep_merge_access_via_array(): void
+    {
+        $base = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'value1' => 'original',
+                        'value2' => 'original2',
+                    ],
+                ],
+            ],
+        ]);
+
+        $override = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'value1' => 'merged',
+                        'value3' => 'new',
+                    ],
+                ],
+            ],
+        ]);
+
+        $base->mix($override);
+
+        // Access via array syntax
+        $this->assertEquals('merged', $base['level1']['level2']['level3']['value1']);
+        $this->assertEquals('original2', $base['level1']['level2']['level3']['value2']);
+        $this->assertEquals('new', $base['level1']['level2']['level3']['value3']);
+
+        // Access non-existent key
+        $this->assertNull($base['level1']['level2']['level3']['nonexistent']);
+        $this->assertFalse(isset($base['level1']['level2']['level3']['nonexistent']));
+    }
+
+    public function test_deep_merge_access_via_property(): void
+    {
+        $base = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'value1' => 'original',
+                        'value2' => 'original2',
+                    ],
+                ],
+            ],
+        ]);
+
+        $override = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'value1' => 'merged',
+                        'value3' => 'new',
+                    ],
+                ],
+            ],
+        ]);
+
+        $base->mix($override);
+
+        // Access via property syntax
+        $this->assertEquals('merged', $base->level1->level2->level3->value1);
+        $this->assertEquals('original2', $base->level1->level2->level3->value2);
+        $this->assertEquals('new', $base->level1->level2->level3->value3);
+
+        // Access non-existent key
+        $this->assertNull($base->level1->level2->level3->nonexistent);
+        $this->assertFalse(isset($base->level1->level2->level3->nonexistent));
+    }
+
+    public function test_deep_merge_set_via_get(): void
+    {
+        $base = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'value' => 'original',
+                    ],
+                ],
+            ],
+        ]);
+
+        $override = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'value' => 'merged',
+                    ],
+                ],
+            ],
+        ]);
+
+        $base->mix($override);
+
+        // Set new value after merge via get()->set()
+        $base->get('level1')->get('level2')->get('level3')->set('new_key', 'new_value');
+
+        $this->assertEquals('merged', $base->level1->level2->level3->value);
+        $this->assertEquals('new_value', $base->level1->level2->level3->new_key);
+    }
+
+    public function test_deep_merge_set_via_array(): void
+    {
+        $base = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'value' => 'original',
+                    ],
+                ],
+            ],
+        ]);
+
+        $override = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'value' => 'merged',
+                    ],
+                ],
+            ],
+        ]);
+
+        $base->mix($override);
+
+        // Set new value after merge via array syntax
+        $base['level1']['level2']['level3']['new_key'] = 'new_value';
+
+        $this->assertEquals('merged', $base['level1']['level2']['level3']['value']);
+        $this->assertEquals('new_value', $base['level1']['level2']['level3']['new_key']);
+    }
+
+    public function test_deep_merge_set_via_property(): void
+    {
+        $base = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'value' => 'original',
+                    ],
+                ],
+            ],
+        ]);
+
+        $override = new Config([
+            'level1' => [
+                'level2' => [
+                    'level3' => [
+                        'value' => 'merged',
+                    ],
+                ],
+            ],
+        ]);
+
+        $base->mix($override);
+
+        // Set new value after merge via property syntax
+        $base->level1->level2->level3->new_key = 'new_value';
+
+        $this->assertEquals('merged', $base->level1->level2->level3->value);
+        $this->assertEquals('new_value', $base->level1->level2->level3->new_key);
+    }
+
+    public function test_multiple_nested_merges(): void
+    {
+        $base = new Config([
+            'app' => [
+                'name' => 'MyApp',
+                'database' => [
+                    'host' => 'localhost',
+                ],
+            ],
+        ]);
+
+        $override1 = new Config([
+            'app' => [
+                'version' => '1.0.0',
+                'database' => [
+                    'port' => 3306,
+                ],
+            ],
+        ]);
+
+        $override2 = new Config([
+            'app' => [
+                'database' => [
+                    'name' => 'myapp',
+                    'port' => 5432, // Override previous override
+                ],
+            ],
+        ]);
+
+        $base->mix($override1);
+        $base->mix($override2);
+
+        // Original preserved
+        $this->assertEquals('MyApp', $base->app->name);
+        $this->assertEquals('localhost', $base->app->database->host);
+
+        // First override preserved
+        $this->assertEquals('1.0.0', $base->app->version);
+
+        // Second override applied
+        $this->assertEquals('myapp', $base->app->database->name);
+        $this->assertEquals(5432, $base->app->database->port); // Last override wins
+    }
+
+    public function test_nested_merge_with_new_branches(): void
+    {
+        $base = new Config([
+            'existing' => [
+                'key' => 'value',
+            ],
+        ]);
+
+        $override = new Config([
+            'existing' => [
+                'new_key' => 'new_value',
+            ],
+            'new_branch' => [
+                'level1' => [
+                    'level2' => 'deep_value',
+                ],
+            ],
+        ]);
+
+        $base->mix($override);
+
+        // Original preserved
+        $this->assertEquals('value', $base->existing->key);
+
+        // New key added to existing branch
+        $this->assertEquals('new_value', $base->existing->new_key);
+
+        // New branch added
+        $this->assertEquals('deep_value', $base->new_branch->level1->level2);
+
+        // Access new branch via all methods
+        $this->assertEquals('deep_value', $base->get('new_branch')->get('level1')->get('level2'));
+        $this->assertEquals('deep_value', $base['new_branch']['level1']['level2']);
+        $this->assertEquals('deep_value', $base->new_branch->level1->level2);
     }
 }
