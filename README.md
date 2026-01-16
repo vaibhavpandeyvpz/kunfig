@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/packagist/l/vaibhavpandeyvpz/kunfig.svg?style=flat-square)](LICENSE)
 [![Code Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg?style=flat-square)](https://github.com/vaibhavpandeyvpz/kunfig)
 
-A modern, flexible PHP configuration management library that provides multiple access patterns for managing configuration values with support for nested configurations, merging, and type safety.
+A modern, flexible PHP configuration management library that provides multiple access patterns (methods, arrays, properties, and dot notation) for managing configuration values with support for nested configurations, merging, and type safety.
 
 ## Features
 

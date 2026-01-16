@@ -36,7 +36,9 @@ interface ConfigInterface extends \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Check if a configuration key exists.
      *
-     * @param  string  $key  The configuration key to check
+     * Supports dot notation for nested keys (e.g., 'app.debug').
+     *
+     * @param  string  $key  The configuration key to check (supports dot notation)
      * @return bool True if the key exists, false otherwise
      */
     public function has(string $key): bool;
@@ -45,12 +47,13 @@ interface ConfigInterface extends \ArrayAccess, \Countable, \IteratorAggregate
      * Get a configuration value by key.
      *
      * Returns the value for the given key, or the fallback value if the key
-     * does not exist. If the value is a nested array, it will be returned
-     * as a ConfigInterface instance.
+     * does not exist. Nested configuration values (stored as ConfigInterface
+     * instances) are returned as ConfigInterface instances. Supports dot notation
+     * for nested keys (e.g., 'app.debug').
      *
-     * @param  string  $key  The configuration key
+     * @param  string  $key  The configuration key (supports dot notation)
      * @param  mixed  $fallback  The fallback value if key doesn't exist
-     * @return ConfigInterface|mixed The configuration value or fallback
+     * @return mixed The configuration value (may be ConfigInterface for nested configs) or fallback
      */
     public function get(string $key, mixed $fallback = null): mixed;
 
@@ -58,9 +61,11 @@ interface ConfigInterface extends \ArrayAccess, \Countable, \IteratorAggregate
      * Set a configuration value.
      *
      * If the value is an array, it will be automatically converted to a
-     * ConfigInterface instance for nested configuration support.
+     * ConfigInterface instance for nested configuration support. Supports dot
+     * notation for nested keys (e.g., 'app.debug'), which automatically creates
+     * the nested structure if it doesn't exist.
      *
-     * @param  string  $key  The configuration key
+     * @param  string  $key  The configuration key (supports dot notation)
      * @param  mixed  $value  The value to set
      */
     public function set(string $key, mixed $value): void;
@@ -68,7 +73,9 @@ interface ConfigInterface extends \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Remove a configuration key.
      *
-     * @param  string  $key  The configuration key to remove
+     * Supports dot notation for nested keys (e.g., 'app.debug').
+     *
+     * @param  string  $key  The configuration key to remove (supports dot notation)
      */
     public function remove(string $key): void;
 
